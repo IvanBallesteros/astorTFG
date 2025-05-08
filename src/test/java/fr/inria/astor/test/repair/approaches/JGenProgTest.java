@@ -21,6 +21,7 @@ import fr.inria.astor.core.entities.Ingredient;
 import fr.inria.astor.core.entities.ProgramVariant;
 import fr.inria.astor.core.entities.StatementOperatorInstance;
 import fr.inria.astor.core.entities.validation.TestCaseVariantValidationResult;
+import fr.inria.astor.core.ingredientbased.LLMIngredientEngine;
 import fr.inria.astor.core.manipulation.sourcecode.VariableResolver;
 import fr.inria.astor.core.setup.ConfigurationProperties;
 import fr.inria.astor.core.solutionsearch.AstorCoreEngine;
@@ -451,7 +452,7 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// cs.command.put("-flthreshold", "0.1");
 		org.apache.log4j.LogManager.getRootLogger().setLevel(Level.INFO);
 		System.out.println(Arrays.toString(cs.flat()));
-		main1.execute(cs.flat());
+		main1.execute(cs.flat());	// Aquí s'executa tot.
 
 		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
 		assertTrue(solutions.size() > 0);
@@ -462,8 +463,41 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 
 		String diff = variant.getPatchDiff().getFormattedDiff();
 		log.debug("Patch: " + diff);
-
 	}
+
+	@Test
+	public void testTFG() throws Exception {
+	
+		CommandSummary cs = MathCommandsTests.getMath70Command();
+
+		// Configure to use LLM engine
+		cs.command.put("-customengine", LLMIngredientEngine.class.getName());
+		
+		// Add LLM parameters and prompt template
+		cs.command.put("-parameters", 
+			"llmEngine" + File.pathSeparator + "ollama" +  // LLM 
+			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
+			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + 
+			"Fix this Java code:\n{buggycode}\nThe failing test is:\n{testcode}"
+		);
+
+		AstorMain main1 = new AstorMain();
+		System.out.println(Arrays.toString(cs.flat()));
+		main1.execute(cs.flat());
+
+		// Validate results
+		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
+		assertTrue("Should find at least one solution", solutions.size() > 0);
+		
+		// Validate the first solution
+		ProgramVariant variant = solutions.get(0);
+		assertNotNull(variant.getPatchDiff().getFormattedDiff());
+		
+		// Print the patch for inspection
+		System.out.println("Found patch: " + variant.getPatchDiff().getFormattedDiff());
+	}
+
+
 
 	@Test
 	public void testMath70ChangeModifPoints() throws Exception {
