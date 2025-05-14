@@ -197,7 +197,7 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		ArrayList<String> candidates = new ArrayList<String>();
 		
 		// Get prompt template name from configuration, with BASIC_REPAIR as default
-		String templateName = ConfigurationProperties.getProperty("llmtemplate");
+		String templateName = ConfigurationProperties.getProperty("llmprompttemplate");
 		if (templateName == null) {
 			templateName = "BASIC_REPAIR";
 		}
@@ -205,23 +205,18 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		// Get the prompt template - either from predefined templates or from configuration
 		String promptTemplate;
 		if (LLMPromptTemplate.hasTemplate(templateName)) {
-			// Use predefined template
+			// Use user-defined template
 			promptTemplate = LLMPromptTemplate.getTemplate(templateName);
 		} else {
-			// Use custom template from configuration
-			String customTemplate = ConfigurationProperties.getProperty("llmprompttemplate");
-			if (customTemplate != null) {
-				promptTemplate = customTemplate;
-			} else {
-				promptTemplate = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
-			}
+			// Use predefined default template
+			promptTemplate = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
 		}
 		
 		// Fill the template with the buggy code and test code
 		String prompt = LLMPromptTemplate.fillTemplate(promptTemplate, buggyCode, testCode);
 		
 		// Use the appropriate LLM service based on configuration
-		String llmService = ConfigurationProperties.getProperty("llmservice");
+		String llmService = ConfigurationProperties.getProperty("llmService");
 		if (llmService == null) {
 			llmService = "ollama"; // Default to ollama
 		}

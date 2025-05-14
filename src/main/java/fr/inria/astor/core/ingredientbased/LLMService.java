@@ -15,7 +15,7 @@ import org.json.JSONObject;
 public class LLMService {
     
     // Default URL for Ollama API
-    private static final String OLLAMA_API_URL = "http://localhost:11434/api/generate";
+    private static final String OLLAMA_API_URL = "URL"; // http://localhost:11434/api/generate
     
     /**
      * Generate a response from Ollama
