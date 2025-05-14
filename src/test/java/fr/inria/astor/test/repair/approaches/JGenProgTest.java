@@ -467,18 +467,17 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 
 	@Test
 	public void testTFG() throws Exception {
-	
+		// We will use Math-70 as the test subject
 		CommandSummary cs = MathCommandsTests.getMath70Command();
 
-		// Configure to use LLM engine
+		// Configure to use our custom LLM engine
 		cs.command.put("-customengine", LLMIngredientEngine.class.getName());
 		
-		// Add LLM parameters and prompt template
+		// Add LLM-specific parameters - now using the template name instead of the whole prompt
 		cs.command.put("-parameters", 
-			"llmEngine" + File.pathSeparator + "ollama" +  // LLM 
+			"llmService" + File.pathSeparator + "ollama" +  // LLM
 			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
-			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + 
-			"Fix this Java code:\n{buggycode}\nThe failing test is:\n{testcode}"
+			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "DETAILED_REPAIR" // Use the detailed repair template
 		);
 
 		AstorMain main1 = new AstorMain();
@@ -496,8 +495,6 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// Print the patch for inspection
 		System.out.println("Found patch: " + variant.getPatchDiff().getFormattedDiff());
 	}
-
-
 
 	@Test
 	public void testMath70ChangeModifPoints() throws Exception {

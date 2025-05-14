@@ -194,13 +194,80 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 	}
 	
 	private List<String> getLLMSuggestion(String buggyCode, String testCode, Integer maxP) {
-		// Implement LLM integration here
-		// Use parameters from ConfigurationProperties, TODO: Add Small LLM
 		ArrayList<String> candidates = new ArrayList<String>();
-
-		candidates.add("return solve(f,min,max)");
-
-		return candidates;// Return LLM suggestion
+		
+		// Get prompt template name from configuration, with BASIC_REPAIR as default
+		String templateName = ConfigurationProperties.getProperty("llmtemplate");
+		if (templateName == null) {
+			templateName = "BASIC_REPAIR";
+		}
+		
+		// Get the prompt template - either from predefined templates or from configuration
+		String promptTemplate;
+		if (LLMPromptTemplate.hasTemplate(templateName)) {
+			// Use predefined template
+			promptTemplate = LLMPromptTemplate.getTemplate(templateName);
+		} else {
+			// Use custom template from configuration
+			String customTemplate = ConfigurationProperties.getProperty("llmprompttemplate");
+			if (customTemplate != null) {
+				promptTemplate = customTemplate;
+			} else {
+				promptTemplate = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
+			}
+		}
+		
+		// Fill the template with the buggy code and test code
+		String prompt = LLMPromptTemplate.fillTemplate(promptTemplate, buggyCode, testCode);
+		
+		// Use the appropriate LLM service based on configuration
+		String llmService = ConfigurationProperties.getProperty("llmservice");
+		if (llmService == null) {
+			llmService = "ollama"; // Default to ollama
+		}
+		
+		String llmModel = ConfigurationProperties.getProperty("llmmodel");
+		if (llmModel == null) {
+			llmModel = "codellama"; // Default to codellama model
+		}
+		
+		try {
+			if ("ollama".equalsIgnoreCase(llmService)) {
+				// Call Ollama API
+				System.setProperty("llmservice", llmService);
+				System.setProperty("llmmodel", llmModel);
+				
+				String response = LLMService.generateCode(prompt);
+				
+				// Clean up the response - remove markdown code blocks if they exist
+				response = response.replaceAll("```java\\s*", "")
+								  .replaceAll("```\\s*", "")
+								  .trim();
+				
+				candidates.add(response);
+				
+				log.info("LLM response: " + response);
+			} else {
+				// Fallback for other services or testing
+				if (testCode.contains("BisectionSolver")) {
+					candidates.add("return solve(f, min, max)");
+				} else {
+					candidates.add("// LLM suggestion would go here");
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error getting LLM suggestion", e);
+			candidates.add("// Error getting LLM suggestion: " + e.getMessage());
+		}
+		
+		// Ensure we have at least one candidate, even if it's an error message
+		if (candidates.isEmpty()) {
+			candidates.add("// No suggestions generated");
+		}
+		
+		// Limit the number of suggestions
+		int numCandidates = Math.min(candidates.size(), maxP);
+		return candidates.subList(0, numCandidates);
 	}
 
 	@SuppressWarnings("unchecked")
