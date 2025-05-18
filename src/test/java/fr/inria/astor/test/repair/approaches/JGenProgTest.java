@@ -452,7 +452,7 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// cs.command.put("-flthreshold", "0.1");
 		org.apache.log4j.LogManager.getRootLogger().setLevel(Level.INFO);
 		System.out.println(Arrays.toString(cs.flat()));
-		main1.execute(cs.flat());	// Aquí s'executa tot.
+		main1.execute(cs.flat());
 
 		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
 		assertTrue(solutions.size() > 0);
@@ -475,10 +475,10 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		
 		// Add LLM-specific parameters - now using the template name instead of the whole prompt
 		cs.command.put("-parameters", 
-			"llmService" + File.pathSeparator + "ollama" +  // LLM
-			File.pathSeparator + "llmmodel" + File.pathSeparator + "codellama" +  // Use CodeLlama model
-			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
-			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "BASIC_REPAIR" // Use the detailed repair template
+				File.pathSeparator + "llmService" + File.pathSeparator + "ollama" +  // LLM
+				File.pathSeparator + "llmmodel" + File.pathSeparator + "codellama" +  // Use CodeLlama model
+				File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
+				File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "BASIC_REPAIR" // Use the detailed repair template
 		);
 
 		AstorMain main1 = new AstorMain();

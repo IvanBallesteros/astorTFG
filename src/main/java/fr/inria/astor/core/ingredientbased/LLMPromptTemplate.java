@@ -14,13 +14,8 @@ public class LLMPromptTemplate {
     
     // Initialize predefined templates
     static {
-        // Basic repair prompt
-        predefinedTemplates.put("BASIC_REPAIR", 
-                "Fix this Java code:\n\n{buggycode}\n\n" +
-                "The failing test is:\n\n{testcode}\n\n");
-
         // More detailed repair prompt with context
-        predefinedTemplates.put("DETAILED_REPAIR", 
+        predefinedTemplates.put("BASIC_REPAIR", 
                 "There's a bug in the following Java code:\n\n{buggycode}\n\n" +
                 "The failing test case is:\n\n{testcode}\n\n" +
                 "Please provide a fix that makes the test pass. " +
