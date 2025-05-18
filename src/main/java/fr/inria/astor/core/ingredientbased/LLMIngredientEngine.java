@@ -194,13 +194,8 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 	}
 	
 	private List<String> getLLMSuggestion(String buggyCode, String testCode, Integer maxP) {
-		// Implement LLM integration here
-		// Use parameters from ConfigurationProperties, TODO: Add Small LLM
-		ArrayList<String> candidates = new ArrayList<String>();
-
-		candidates.add("return solve(f,min,max)");
-
-		return candidates;// Return LLM suggestion
+		// Use the LLMService to get suggestions
+		return fr.inria.astor.core.ingredientbased.llm.LLMService.getSuggestions(buggyCode, testCode, maxP);
 	}
 
 	@SuppressWarnings("unchecked")

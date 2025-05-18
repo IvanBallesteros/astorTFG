@@ -452,7 +452,7 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// cs.command.put("-flthreshold", "0.1");
 		org.apache.log4j.LogManager.getRootLogger().setLevel(Level.INFO);
 		System.out.println(Arrays.toString(cs.flat()));
-		main1.execute(cs.flat());	// Aquí s'executa tot.
+		main1.execute(cs.flat());
 
 		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
 		assertTrue(solutions.size() > 0);
@@ -467,18 +467,18 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 
 	@Test
 	public void testTFG() throws Exception {
-	
+    
 		CommandSummary cs = MathCommandsTests.getMath70Command();
 
 		// Configure to use LLM engine
 		cs.command.put("-customengine", LLMIngredientEngine.class.getName());
 		
-		// Add LLM parameters and prompt template
+		// Add LLM parameters with more configuration options - URL is now handled internally
 		cs.command.put("-parameters", 
-			"llmEngine" + File.pathSeparator + "ollama" +  // LLM 
+			"llmEngine" + File.pathSeparator + "ollama" +  // LLM engine to use
+			File.pathSeparator + "ollamaModel" + File.pathSeparator + "codellama" + // LLM model for Ollama
 			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
-			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + 
-			"Fix this Java code:\n{buggycode}\nThe failing test is:\n{testcode}"
+			File.pathSeparator + "llmprompttemplateid" + File.pathSeparator + "comprehensive" // Use the comprehensive template
 		);
 
 		AstorMain main1 = new AstorMain();
@@ -496,8 +496,6 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// Print the patch for inspection
 		System.out.println("Found patch: " + variant.getPatchDiff().getFormattedDiff());
 	}
-
-
 
 	@Test
 	public void testMath70ChangeModifPoints() throws Exception {
