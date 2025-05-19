@@ -20,13 +20,11 @@ import fr.inria.astor.core.solutionsearch.spaces.ingredients.IngredientSearchStr
 import fr.inria.astor.core.solutionsearch.spaces.ingredients.transformations.IngredientTransformationStrategy;
 import fr.inria.astor.core.solutionsearch.spaces.operators.AstorOperator;
 import fr.inria.astor.core.solutionsearch.spaces.operators.IngredientBasedOperator;
-import fr.inria.astor.core.solutionsearch.spaces.operators.OperatorSpace;
 import fr.inria.astor.core.stats.PatchHunkStats;
 import fr.inria.astor.core.stats.PatchStat.HunkStatEnum;
 import fr.inria.main.AstorOutputStatus;
 import fr.inria.main.evolution.ExtensionPoints;
 import spoon.reflect.code.CtCodeSnippetStatement;
-import spoon.reflect.code.CtStatement;
 
 /**
  * Exhaustive Search Engine
