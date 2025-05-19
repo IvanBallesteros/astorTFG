@@ -42,7 +42,7 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 			throws JSAPException {
 		super(mutatorExecutor, projFacade);
 		ConfigurationProperties.properties.setProperty(ExtensionPoints.TARGET_CODE_PROCESSOR.identifier, "statements");
-		ConfigurationProperties.properties.setProperty(ExtensionPoints.OPERATORS_SPACE.identifier, "irr-statements");
+		//ConfigurationProperties.properties.setProperty(ExtensionPoints.OPERATORS_SPACE.identifier, "irr-statements");
 		ConfigurationProperties.properties.setProperty(ExtensionPoints.SUSPICIOUS_NAVIGATION.identifier,
 				SuspiciousNavigationValues.INORDER.toString());
 	}
@@ -197,10 +197,10 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		List<String> candidates = new ArrayList<>();
 		
 		// Direct solution for Math-70 to ensure the test passes
-		if (buggyCode.contains("return solve(min, max)")) {
-			candidates.add("return solve(f, min, max)");
-			return candidates;
-		}
+		// if (buggyCode.contains("return solve(min, max)")) {
+		// 	candidates.add("return solve(f, min, max)");
+		// 	return candidates;
+		// }
 		
 		try {
 			// Get the LLM prompt template from parameters

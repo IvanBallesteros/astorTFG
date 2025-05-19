@@ -40,11 +40,7 @@ public class ConfigurationProperties {
 	}
 
 	public static String getProperty(String key) {
-		String value = properties.getProperty(key);
-		if (value == null) {
-			value = "default";
-		}
-		return value;
+		return properties.getProperty(key);
 	}
 
 	public static void setProperty(String key, String value) {

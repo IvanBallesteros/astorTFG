@@ -27,9 +27,9 @@ public class LLMService {
     public static String generateFromOllama(String prompt, String model) {
         try {
             // For Math-70, include a hardcoded solution to ensure test passes
-            if (prompt.contains("return solve(min, max)")) {
-                return "return solve(f, min, max)";
-            }
+            // if (prompt.contains("return solve(min, max)")) {
+            //     return "return solve(f, min, max)";
+            // }
             
             // Create connection
             URL url = new URL(OLLAMA_API_URL);
@@ -66,9 +66,9 @@ public class LLMService {
             System.err.println("Error connecting to Ollama: " + e.getMessage());
             
             // For Math-70, include a hardcoded solution to ensure test passes
-            if (prompt.contains("return solve(min, max)")) {
-                return "return solve(f, min, max)";
-            }
+            // if (prompt.contains("return solve(min, max)")) {
+            //     return "return solve(f, min, max)";
+            // }
             
             return "// Error connecting to Ollama: " + e.getMessage();
         }
@@ -87,8 +87,8 @@ public class LLMService {
         }
         
         // Get LLM service from configuration
-        String service = System.getProperty("llmService", "ollama");
-        String model = System.getProperty("llmmodel", "codellama");
+        String service = System.getProperty("llmService");
+        String model = System.getProperty("llmmodel");
         
         if ("ollama".equalsIgnoreCase(service)) {
             return generateFromOllama(prompt, model);
