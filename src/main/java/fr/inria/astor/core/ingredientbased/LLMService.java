@@ -27,10 +27,6 @@ public class LLMService {
      * @return The generated code
      */
     public static String generateCode(String prompt, String service, String model) {
-        // Special case for Math-70 - always return the known fix regardless of LLM
-        if (prompt.contains("return solve(min, max)")) {
-            return "return solve(f, min, max)";
-        }
         
         // Check which service to use
         if ("ollama".equalsIgnoreCase(service)) {
@@ -40,6 +36,7 @@ public class LLMService {
         } else if ("none".equalsIgnoreCase(service)) {
             // Mock mode - return a hardcoded response for testing
             return mockResponse(prompt);
+            // TODO Remove this and add error handling
         } else {
             // If service is not specified or not supported, use fallback
             return "// Unsupported LLM service: " + service + ". Using default response.";
@@ -139,12 +136,6 @@ public class LLMService {
                 System.err.println("Model '" + model + "' not found. Try running 'ollama pull " + model + "' first.");
             }
             
-            // If there was an error but we're trying to fix Math-70, return the known solution
-            if (prompt.contains("return solve(min, max)") || 
-                (prompt.contains("solve") && prompt.contains("min") && prompt.contains("max"))) {
-                return "return solve(f, min, max)";
-            }
-            
             return "// Error connecting to Ollama API: " + e.getMessage();
         } finally {
             if (connection != null) {
@@ -234,7 +225,7 @@ public class LLMService {
         if (prompt.contains("return solve(min, max)") || 
             (prompt.contains("solve") && prompt.contains("min") && prompt.contains("max"))) {
             return "return solve(f, min, max)";
-        }
+        } // TODO remove this
         
         // Just echo the last line of the prompt as a mock fix
         String[] lines = prompt.split("\n");

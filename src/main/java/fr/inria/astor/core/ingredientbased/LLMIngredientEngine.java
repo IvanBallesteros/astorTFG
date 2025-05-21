@@ -196,85 +196,136 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 	}
 	
 	private List<String> getLLMSuggestion(String buggyCode, String testCode) {
-		
-		List<String> candidates = new ArrayList<>();
-		
-		int maxP = ConfigurationProperties.getPropertyInt("maxsuggestionsperpoint");
-		String llmService = ConfigurationProperties.getProperty("llmService");
-		String llmModel = ConfigurationProperties.getProperty("llmmodel");
-		String templateName = ConfigurationProperties.getProperty("llmprompttemplate");
-		
-		// If service is not specified, use none (mock)
-		if (llmService == null || llmService.trim().isEmpty()) {
-			llmService = "none";
-		}
-		
-		// If model is not specified, use a default
-		if (llmModel == null || llmModel.trim().isEmpty()) {
-			llmModel = "mock";
-		}
-		
-		String template = LLMPromptTemplate.getTemplate(templateName);
-		if (template == null) {
-			template = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
-		}
-		String prompt = LLMPromptTemplate.fillTemplate(template, buggyCode, testCode);
+        
+        List<String> candidates = new ArrayList<>();
+        
+        int maxP = ConfigurationProperties.getPropertyInt("maxsuggestionsperpoint");
+        String llmService = ConfigurationProperties.getProperty("llmService");
+        String llmModel = ConfigurationProperties.getProperty("llmmodel");
+        String templateName = ConfigurationProperties.getProperty("llmprompttemplate");
+        
+        // If service is not specified, use none (mock)
+        if (llmService == null || llmService.trim().isEmpty()) {
+            llmService = "none";
+        }
+        
+        // If model is not specified, use a default
+        if (llmModel == null || llmModel.trim().isEmpty()) {
+            llmModel = "mock";
+        }
+        
+        String template = LLMPromptTemplate.getTemplate(templateName);
+        if (template == null) {
+            template = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
+        }
+        String prompt = LLMPromptTemplate.fillTemplate(template, buggyCode, testCode);
+        
+        System.out.println("Sending prompt to LLM:\n" + prompt);
 
-		try {
-			// Get the response from the LLM with explicit parameters
-			String response = LLMService.generateCode(prompt, llmService, llmModel);
-			
-			// Clean the response (e.g., remove markdown code blocks)
-			response = cleanLLMResponse(response);
-			
-			System.out.println("Number of suggestions: " + maxP);
-			
-			// Add the response to the candidates
-			candidates.add(response);
-			
-		} catch (Exception e) {
+        try {
+            // Get the response from the LLM with explicit parameters
+            String response = LLMService.generateCode(prompt, llmService, llmModel);
+            
+            // Print the raw response
+            System.out.println("Raw LLM response:\n" + response);
+            
+            // Check if we're using the multiple solutions template
+            if (templateName != null && templateName.equals("MULTIPLE_SOLUTIONS")) {
+                // Extract multiple solutions from the response
+                candidates = extractMultipleSolutions(response);
+            } else {
+                // Clean the response and add as a single solution
+                String cleanedResponse = cleanLLMResponse(response);
+                candidates.add(cleanedResponse);
+            }
+            
+        } catch (Exception e) {
+            log.error("Error getting LLM suggestion", e);
+        }
+        
+        // Limit the number of suggestions
+        int numSuggestions = Math.min(candidates.size(), maxP);
 
-			log.error("Error getting LLM suggestion", e);
-			
-		}
-		
-		// Ensure we have at least one candidate
-		// Fallback for Math-70 to ensure the test passes
-		if (buggyCode.isEmpty()) {
-			candidates.add("return solve(f, min, max)");
-			candidates.add(buggyCode);
-		}
-		
-		// Limit the number of suggestions
-		int numSuggestions = Math.min(candidates.size(), maxP);
+        System.out.println("Final LLM suggestions: " + candidates.subList(0, numSuggestions));
 
-		System.out.println("LLM suggestions: " + candidates);
+        return candidates.subList(0, numSuggestions);
+    }
 
-		return candidates.subList(0, numSuggestions);
-	}
+    // Helper method to extract multiple solutions from LLM response
+    private List<String> extractMultipleSolutions(String response) {
+        List<String> solutions = new ArrayList<>();
+        
+        if (response == null || response.isEmpty()) {
+            return solutions;
+        }
+        
+        // Remove markdown code blocks first
+        response = response.replaceAll("```java", "").replaceAll("```", "");
+        
+        // Try to extract solutions based on the format pattern
+        String[] lines = response.split("\n");
+        StringBuilder currentSolution = new StringBuilder();
+        boolean collectingSolution = false;
+        
+        for (String line : lines) {
+            line = line.trim();
+            
+            if (line.startsWith("SOLUTION") || line.contains("SOLUTION")) {
+                // If we were collecting a previous solution, add it
+                if (collectingSolution && currentSolution.length() > 0) {
+                    solutions.add(currentSolution.toString().trim());
+                    currentSolution = new StringBuilder();
+                }
+                collectingSolution = true;
+            } else if (collectingSolution && !line.isEmpty() ) {
+                // This looks like actual code
+                currentSolution.append(line);
+            }
+        }
+        
+        // Add the last solution if there is one
+        if (collectingSolution && currentSolution.length() > 0) {
+            solutions.add(currentSolution.toString().trim());
+        }
+        
+        // If the format was not as expected, fallback to a simpler approach
+        if (solutions.isEmpty()) {
+            // Look for lines that might contain solutions
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                
+                if (line.contains("return") || line.contains("=") || line.contains(";")) {
+                    solutions.add(line);
+                }
+            }
+        }
+        
+        return solutions;
+    }
 
-	// Helper method to clean LLM responses
-	private String cleanLLMResponse(String response) {
-		if (response == null) {
-			return "";
-		}
-		
-		// Remove markdown code blocks
-		response = response.replaceAll("```java", "").replaceAll("```", "");
-		
-		// If the response contains multiple lines, try to extract just the code line
-		if (response.contains("\n")) {
-			String[] lines = response.split("\n");
-			for (String line : lines) {
-				// Look for lines that might contain a solution
-				if (line.contains("return") || line.contains(";")) {
-					return line.trim();
-				}
-			}
-		}
-		
-		return response.trim();
-	}
+    // Helper method to clean LLM responses
+    private String cleanLLMResponse(String response) {
+        if (response == null) {
+            return "";
+        }
+        
+        // Remove markdown code blocks
+        response = response.replaceAll("```java", "").replaceAll("```", "");
+        
+        // If the response contains multiple lines, try to extract just the code line
+        if (response.contains("\n")) {
+            String[] lines = response.split("\n");
+            for (String line : lines) {
+                // Look for lines that might contain a solution
+                if (line.contains("return") || line.contains(";")) {
+                    return line.trim();
+                }
+            }
+        }
+        
+        return response.trim();
+    }
 
 	@SuppressWarnings("unchecked")
 	public List<OperatorInstance> createIngredientOpInstance(SuspiciousModificationPoint modificationPoint,
@@ -283,7 +334,7 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		List<OperatorInstance> ops = new ArrayList<>();
 		List<Ingredient> ingredients = new ArrayList<>();
 
-		if (astorOperator instanceof ReplaceOp) {// TODO
+		if (astorOperator instanceof ReplaceOp) {
 			String type = ingredientSpace.getType(new Ingredient(modificationPoint.getCodeElement())).toString();
 
 			ingredients = ingredientSpace.getIngredients(modificationPoint.getCodeElement(), type);

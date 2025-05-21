@@ -27,8 +27,22 @@ public class LLMPromptTemplate {
                 "There's a bug in the following Java code:\n\n{buggycode}\n\n" +
                 "The failing test case is:\n\n{testcode}\n\n" +
                 "Please provide a line fix that makes the test pass." +
-                "Only include the corrected code in your response. Do not include explanations." +
+                "Only include the corrected line code in your response. Do not include explanations." +
                 "The code should be a valid Java code snippet. The code will be placed in the line I gave you."
+        );
+        
+        // New template for multiple solutions
+        predefinedTemplates.put(
+            "MULTIPLE_SOLUTIONS",
+                "There's a bug in the following Java code:\n\n{buggycode}\n\n" +
+                "The failing test case is:\n\n{testcode}\n\n" +
+                "Please provide 3 different possible fixes that might make the test pass.\n" +
+                "Format your response as follows:\n" +
+                "SOLUTION 1:\n[first solution code]\n" +
+                "SOLUTION 2:\n[second solution code]\n" +
+                "SOLUTION 3:\n[third solution code]\n\n" +
+                "Each solution should be a single line of code that can replace the buggy line, do not write code in different lines." +
+                "Do not include extra explanations, just the code solutions."
         );
     }
     
