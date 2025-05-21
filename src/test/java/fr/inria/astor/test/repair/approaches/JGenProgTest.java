@@ -452,7 +452,7 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// cs.command.put("-flthreshold", "0.1");
 		org.apache.log4j.LogManager.getRootLogger().setLevel(Level.INFO);
 		System.out.println(Arrays.toString(cs.flat()));
-		main1.execute(cs.flat());	// Aquí s'executa tot.
+		main1.execute(cs.flat());
 
 		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
 		assertTrue(solutions.size() > 0);
@@ -478,23 +478,30 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 			"llmService" + File.pathSeparator + "ollama" +  // LLM
 			File.pathSeparator + "llmmodel" + File.pathSeparator + "codellama7b" +  // Use CodeLlama model
 			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "1" + // Only generate 1 suggestion per point
-			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "BASIC_REAPIR" // Use the detailed repair template
+			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "BASIC_REPAIR" + // Use the detailed repair template
+			File.pathSeparator + "stopfirst" + File.pathSeparator + "true" // Stop at first solution
 		);
 
 		AstorMain main1 = new AstorMain();
 		System.out.println(Arrays.toString(cs.flat()));
 		main1.execute(cs.flat());
 
+		// Add debug output
+		System.out.println("Engine status: " + main1.getEngine().getOutputStatus());
+		System.out.println("Solutions found: " + main1.getEngine().getSolutions().size());
+		
 		// Validate results
 		List<ProgramVariant> solutions = main1.getEngine().getSolutions();
 		assertTrue("Should find at least one solution", solutions.size() > 0);
 		
 		// Validate the first solution
-		ProgramVariant variant = solutions.get(0);
-		assertNotNull(variant.getPatchDiff().getFormattedDiff());
-		
-		// Print the patch for inspection
-		System.out.println("Found patch: " + variant.getPatchDiff().getFormattedDiff());
+		if (!solutions.isEmpty()) {
+			ProgramVariant variant = solutions.get(0);
+			assertNotNull(variant.getPatchDiff().getFormattedDiff());
+			
+			// Print the patch for inspection
+			System.out.println("Found patch: " + variant.getPatchDiff().getFormattedDiff());
+		}
 	}
 
 	@Test

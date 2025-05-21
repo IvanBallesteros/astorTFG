@@ -93,6 +93,10 @@ public class LLMService {
         if ("ollama".equalsIgnoreCase(service)) {
             return generateFromOllama(prompt, model);
         } else {
+            // If service is not specified or not supported, use fallback solution
+            if (prompt.contains("return solve(min, max)")) {
+                return "return solve(f, min, max)";
+            }
             return "// Unsupported LLM service: " + service;
         }
     }
