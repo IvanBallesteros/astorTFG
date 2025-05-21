@@ -203,24 +203,31 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		String llmService = ConfigurationProperties.getProperty("llmService");
 		String llmModel = ConfigurationProperties.getProperty("llmmodel");
 		String templateName = ConfigurationProperties.getProperty("llmprompttemplate");
+		
+		// If service is not specified, use none (mock)
+		if (llmService == null || llmService.trim().isEmpty()) {
+			llmService = "none";
+		}
+		
+		// If model is not specified, use a default
+		if (llmModel == null || llmModel.trim().isEmpty()) {
+			llmModel = "mock";
+		}
+		
 		String template = LLMPromptTemplate.getTemplate(templateName);
 		if (template == null) {
 			template = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
 		}
 		String prompt = LLMPromptTemplate.fillTemplate(template, buggyCode, testCode);
 
-		System.setProperty("llmService", llmService);
-		System.setProperty("llmmodel", llmModel);
-
 		try {
-			// Get the response from the LLM
-			String response = LLMService.generateCode(prompt);
+			// Get the response from the LLM with explicit parameters
+			String response = LLMService.generateCode(prompt, llmService, llmModel);
 			
 			// Clean the response (e.g., remove markdown code blocks)
 			response = cleanLLMResponse(response);
 			
-			
-			response = "return solve(f, min, max)";
+			System.out.println("Number of suggestions: " + maxP);
 			
 			// Add the response to the candidates
 			candidates.add(response);
@@ -228,7 +235,6 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		} catch (Exception e) {
 
 			log.error("Error getting LLM suggestion", e);
-			
 			
 		}
 		
@@ -247,16 +253,14 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		return candidates.subList(0, numSuggestions);
 	}
 
-	/**
-	 * Clean the response from the LLM to extract just the code
-	 * 
-	 * @param response The raw response from the LLM
-	 * @return The cleaned code
-	 */
+	// Helper method to clean LLM responses
 	private String cleanLLMResponse(String response) {
+		if (response == null) {
+			return "";
+		}
+		
 		// Remove markdown code blocks
-		response = response.replaceAll("```java\\s*", "");
-		response = response.replaceAll("```\\s*", "");
+		response = response.replaceAll("```java", "").replaceAll("```", "");
 		
 		// If the response contains multiple lines, try to extract just the code line
 		if (response.contains("\n")) {
