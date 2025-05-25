@@ -28,18 +28,12 @@ public class LLMService {
      */
     public static String generateCode(String prompt, String service, String model) {
         
-        // Check which service to use
         if ("ollama".equalsIgnoreCase(service)) {
             return generateFromOllama(prompt, model);
         } else if ("gpt".equalsIgnoreCase(service)) {
             return generateFromGPT(prompt, model);
-        } else if ("none".equalsIgnoreCase(service)) {
-            // Mock mode - return a hardcoded response for testing
-            return mockResponse(prompt);
-            // TODO Remove this and add error handling
         } else {
-            // If service is not specified or not supported, use fallback
-            return "// Unsupported LLM service: " + service + ". Using default response.";
+            return "// Unsupported LLM service: " + service + ". Use a supported service.";
         }
     }
     
@@ -78,7 +72,7 @@ public class LLMService {
             requestBody.put("stream", false);  // Get complete response, not streaming
             
             // Log the request for debugging
-            System.out.println("Sending request to Ollama API: " + OLLAMA_API_URL);
+            System.out.println("\nSending request to Ollama API: " + OLLAMA_API_URL);
             System.out.println("Using model: " + model);
             
             // Send request
@@ -214,30 +208,4 @@ public class LLMService {
         }
     }
     
-    /**
-     * Generate a mock response for testing
-     * 
-     * @param prompt The prompt (used to determine what type of response to return)
-     * @return A mock response based on the prompt content
-     */
-    private static String mockResponse(String prompt) {
-        // Math-70 specific fix
-        if (prompt.contains("return solve(min, max)") || 
-            (prompt.contains("solve") && prompt.contains("min") && prompt.contains("max"))) {
-            return "return solve(f, min, max)";
-        } // TODO remove this
-        
-        // Just echo the last line of the prompt as a mock fix
-        String[] lines = prompt.split("\n");
-        if (lines.length > 0) {
-            String lastLine = lines[lines.length - 1].trim();
-            // Simple transformation to make it look like a fixed version
-            if (lastLine.startsWith("return") || lastLine.contains("=")) {
-                return lastLine + " // Fixed by mock LLM";
-            }
-            return "// Mock LLM couldn't fix: " + lastLine;
-        }
-        
-        return "// Mock LLM response for testing";
-    }
 }

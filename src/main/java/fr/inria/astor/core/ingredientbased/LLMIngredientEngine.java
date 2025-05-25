@@ -173,7 +173,6 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
 		// Generate fix using LLM
 		List<String> suggestions = getLLMSuggestion(codeToFix, failingTest);
 
-		System.out.println("LLM suggestions total: " + suggestions);
 
 		for (String fixedCode : suggestions) {
 			
@@ -200,34 +199,34 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
         List<String> candidates = new ArrayList<>();
         
         int maxP = ConfigurationProperties.getPropertyInt("maxsuggestionsperpoint");
-        String llmService = ConfigurationProperties.getProperty("llmService");
-        String llmModel = ConfigurationProperties.getProperty("llmmodel");
-        String templateName = ConfigurationProperties.getProperty("llmprompttemplate");
+		maxP = (maxP > 0 && maxP < 7) ? maxP : 6;  // max suggestions for each modification point given by LLM is 6
         
-        // If service is not specified, use none (mock)
+		String llmService = ConfigurationProperties.getProperty("llmService");
         if (llmService == null || llmService.trim().isEmpty()) {
-            llmService = "none";
+            llmService = "ollama"; // Default to Ollama if not specified
         }
         
-        // If model is not specified, use a default
+		String llmModel = ConfigurationProperties.getProperty("llmmodel");
         if (llmModel == null || llmModel.trim().isEmpty()) {
-            llmModel = "mock";
+            llmModel = "codellama:7b"; // Default to CodeLlama 7b if not specified
         }
-        
+
+        String templateName = ConfigurationProperties.getProperty("llmprompttemplate");        
         String template = LLMPromptTemplate.getTemplate(templateName);
         if (template == null) {
-            template = LLMPromptTemplate.getTemplate("BASIC_REPAIR");
+            template = LLMPromptTemplate.getTemplate("MULTIPLE_SOLUTIONS");
         }
-        String prompt = LLMPromptTemplate.fillTemplate(template, buggyCode, testCode);
+        String prompt = LLMPromptTemplate.fillTemplate(template, buggyCode, testCode, maxP);
         
-        System.out.println("Sending prompt to LLM:\n" + prompt);
+		System.out.println("-------------------------------------------------");
+        System.out.println("\nSending prompt to LLM model" + llmModel + ":\n" + prompt);
 
         try {
             // Get the response from the LLM with explicit parameters
             String response = LLMService.generateCode(prompt, llmService, llmModel);
             
             // Print the raw response
-            System.out.println("Raw LLM response:\n" + response);
+            System.out.println("Raw LLM response:\n" + response); // Show LLM response for debugging. 
             
             // Check if we're using the multiple solutions template
             if (templateName != null && templateName.equals("MULTIPLE_SOLUTIONS")) {
@@ -246,7 +245,7 @@ public class LLMIngredientEngine extends ExhaustiveSearchEngine implements Ingre
         // Limit the number of suggestions
         int numSuggestions = Math.min(candidates.size(), maxP);
 
-        System.out.println("Final LLM suggestions: " + candidates.subList(0, numSuggestions));
+        System.out.println("\nFinal LLM suggestions: " + candidates.subList(0, numSuggestions) + "\n");
 
         return candidates.subList(0, numSuggestions);
     }

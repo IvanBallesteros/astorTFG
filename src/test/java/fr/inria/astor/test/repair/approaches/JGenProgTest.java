@@ -476,8 +476,8 @@ public class JGenProgTest extends BaseEvolutionaryTest {
 		// Add LLM-specific parameters - now using the template name instead of the whole prompt
 		cs.command.put("-parameters",
 			"llmService" + File.pathSeparator + "ollama" +  // LLM
-			File.pathSeparator + "llmmodel" + File.pathSeparator + "codellama:7b" +  // Use CodeLlama model
-			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "3" + // Only generate 1 suggestion per point
+			File.pathSeparator + "llmmodel" + File.pathSeparator + "codellama:13b" +  // Use CodeLlama model
+			File.pathSeparator + "maxsuggestionsperpoint" + File.pathSeparator + "0" + // Only generate 1 suggestion per point
 			File.pathSeparator + "llmprompttemplate" + File.pathSeparator + "MULTIPLE_SOLUTIONS" + // Use the detailed repair template
 			File.pathSeparator + "stopfirst" + File.pathSeparator + "true" // Stop at first solution
 		);
