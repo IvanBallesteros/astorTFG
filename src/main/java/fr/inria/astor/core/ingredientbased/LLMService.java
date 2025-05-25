@@ -61,8 +61,8 @@ public class LLMService {
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
-            connection.setConnectTimeout(10000); // 10 seconds timeout for connection
-            connection.setReadTimeout(60000);    // 60 seconds timeout for reading
+            connection.setConnectTimeout(20000); // 10 seconds timeout for connection
+            connection.setReadTimeout(180000);    // 60 seconds timeout for reading
             connection.setDoOutput(true);
             
             // Create JSON request body for Ollama
